@@ -240,11 +240,11 @@ export default function RegisterScreen() {
 
           <View style={styles.complianceContainer}>
             <TouchableOpacity 
-              style={styles.checkbox}
+              style={[styles.checkbox, acceptedTerms && styles.checkboxChecked]}
               onPress={() => setAcceptedTerms(!acceptedTerms)}
             >
               {acceptedTerms && (
-                <FontAwesome5 name="check" size={12} color="#0991f8" solid />
+                <FontAwesome5 name="check" size={12} color="#fff" solid />
               )}
             </TouchableOpacity>
             <Text style={styles.complianceText}>
@@ -254,11 +254,11 @@ export default function RegisterScreen() {
 
           <View style={styles.complianceContainer}>
             <TouchableOpacity 
-              style={styles.checkbox}
+              style={[styles.checkbox, acceptedMarketing && styles.checkboxChecked]}
               onPress={() => setAcceptedMarketing(!acceptedMarketing)}
             >
               {acceptedMarketing && (
-                <FontAwesome5 name="check" size={12} color="#0991f8" solid />
+                <FontAwesome5 name="check" size={12} color="#fff" solid />
               )}
             </TouchableOpacity>
             <Text style={styles.complianceText}>
@@ -466,7 +466,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 12,
-    marginTop: 12,
+    marginTop: 8,
   },
   checkbox: {
     width: 24,
@@ -477,6 +477,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  checkboxChecked: {
+    backgroundColor: '#0991f8',
   },
   complianceText: {
     flex: 1,

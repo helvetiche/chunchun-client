@@ -2,7 +2,7 @@ import { View, Text, Animated, StyleSheet, Image } from 'react-native'
 import { useEffect, useRef, useState } from 'react'
 import { FontAwesome5 } from '@expo/vector-icons'
 
-export default function LoadingScreen({ onComplete }: { onComplete: () => void }) {
+export default function LoadingScreen({ onComplete }: { onComplete?: () => void }) {
   const progressAnim = useRef(new Animated.Value(0)).current
   const opacityAnim = useRef(new Animated.Value(1)).current
   const scaleAnim = useRef(new Animated.Value(0.8)).current
@@ -36,7 +36,7 @@ export default function LoadingScreen({ onComplete }: { onComplete: () => void }
           duration: 500,
           useNativeDriver: false,
         }).start(() => {
-          onComplete()
+          onComplete?.()
         })
       }, 500)
     })

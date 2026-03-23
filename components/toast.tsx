@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
-import { View, Text, StyleSheet, Animated } from 'react-native'
+import { View, Text, StyleSheet, Animated, Dimensions } from 'react-native'
 import { FontAwesome5 } from '@expo/vector-icons'
+import { LinearGradient } from 'expo-linear-gradient'
 
 type ToastType = 'success' | 'error' | 'info' | 'warning'
 
@@ -21,6 +22,7 @@ export default function Toast({
 }: ToastProps) {
   const translateY = useRef(new Animated.Value(-100)).current
   const opacity = useRef(new Animated.Value(0)).current
+  const overlayOpacity = useRef(new Animated.Value(0)).current
 
   useEffect(() => {
     if (visible) {
@@ -33,6 +35,11 @@ export default function Toast({
           friction: 8,
         }),
         Animated.timing(opacity, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.timing(overlayOpacity, {
           toValue: 1,
           duration: 300,
           useNativeDriver: true,
@@ -56,6 +63,11 @@ export default function Toast({
         useNativeDriver: true,
       }),
       Animated.timing(opacity, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.timing(overlayOpacity, {
         toValue: 0,
         duration: 300,
         useNativeDriver: true,
@@ -100,23 +112,54 @@ export default function Toast({
   }
 
   return (
-    <Animated.View
-      style={[
-        styles.container,
-        getToastStyle(),
-        {
-          transform: [{ translateY }],
-          opacity,
-        },
-      ]}
-    >
-      <FontAwesome5 name={getIcon()} size={20} color="#fff" solid />
-      <Text style={styles.message}>{message}</Text>
-    </Animated.View>
+    <>
+      {/* Gradient shadow overlay - from black at top to transparent at 25% */}
+      <Animated.View
+        style={[
+          styles.overlayContainer,
+          {
+            opacity: overlayOpacity,
+            pointerEvents: visible ? 'auto' : 'none',
+          },
+        ]}
+      >
+        <LinearGradient
+          colors={['rgba(0, 0, 0, 0.6)', 'rgba(0, 0, 0, 0.3)', 'transparent']}
+          locations={[0, 0.15, 0.25]}
+          style={styles.gradientOverlay}
+        />
+      </Animated.View>
+      
+      {/* Toast notification */}
+      <Animated.View
+        style={[
+          styles.container,
+          getToastStyle(),
+          {
+            transform: [{ translateY }],
+            opacity,
+          },
+        ]}
+      >
+        <FontAwesome5 name={getIcon()} size={20} color="#fff" solid />
+        <Text style={styles.message}>{message}</Text>
+      </Animated.View>
+    </>
   )
 }
 
 const styles = StyleSheet.create({
+  overlayContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: Dimensions.get('window').height, // Full screen height
+    zIndex: 9998,
+  },
+  gradientOverlay: {
+    flex: 1,
+  },
   container: {
     position: 'absolute',
     top: 50,

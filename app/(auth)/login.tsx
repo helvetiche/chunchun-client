@@ -156,12 +156,23 @@ export default function LoginScreen() {
             </View>
           </View>
 
-          <TouchableOpacity
-            onPress={() => router.push('/(auth)/forgot-password')}
-            style={styles.forgotPasswordLink}
-          >
-            <Text style={styles.forgotPasswordText}>FORGOT PASSWORD?</Text>
-          </TouchableOpacity>
+          <View style={styles.linksRow}>
+            <TouchableOpacity
+              onPress={() => router.push('/(auth)/forgot-password')}
+              style={styles.linkButton}
+            >
+              <Text style={styles.linkText}>FORGOT PASSWORD?</Text>
+            </TouchableOpacity>
+            
+            <View style={styles.linkDivider} />
+            
+            <TouchableOpacity
+              onPress={() => router.push('/(auth)/verify-email')}
+              style={styles.linkButton}
+            >
+              <Text style={styles.linkText}>VERIFY ACCOUNT</Text>
+            </TouchableOpacity>
+          </View>
 
           <TouchableOpacity
             style={[styles.button, isLoading && styles.buttonDisabled]}
@@ -200,11 +211,11 @@ export default function LoginScreen() {
 
           <View style={styles.complianceContainer}>
             <TouchableOpacity 
-              style={styles.checkbox}
+              style={[styles.checkbox, acceptedTerms && styles.checkboxChecked]}
               onPress={() => setAcceptedTerms(!acceptedTerms)}
             >
               {acceptedTerms && (
-                <FontAwesome5 name="check" size={12} color="#0991f8" solid />
+                <FontAwesome5 name="check" size={12} color="#fff" solid />
               )}
             </TouchableOpacity>
             <Text style={styles.complianceText}>
@@ -214,11 +225,11 @@ export default function LoginScreen() {
 
           <View style={styles.complianceContainer}>
             <TouchableOpacity 
-              style={styles.checkbox}
+              style={[styles.checkbox, acceptedMarketing && styles.checkboxChecked]}
               onPress={() => setAcceptedMarketing(!acceptedMarketing)}
             >
               {acceptedMarketing && (
-                <FontAwesome5 name="check" size={12} color="#0991f8" solid />
+                <FontAwesome5 name="check" size={12} color="#fff" solid />
               )}
             </TouchableOpacity>
             <Text style={styles.complianceText}>
@@ -487,12 +498,37 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  checkboxChecked: {
+    backgroundColor: '#0991f8',
+  },
   complianceText: {
     flex: 1,
     fontSize: 12,
     fontFamily: 'Jua-Regular',
     color: '#0991f8',
     lineHeight: 18,
+  },
+  linksRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 8,
+    gap: 12,
+  },
+  linkButton: {
+    paddingVertical: 4,
+  },
+  linkText: {
+    fontSize: 12,
+    fontFamily: 'Jua-Regular',
+    color: '#0991f8',
+    textDecorationLine: 'underline',
+  },
+  linkDivider: {
+    width: 1,
+    height: 12,
+    backgroundColor: '#0991f8',
+    opacity: 0.3,
   },
   forgotPasswordLink: {
     alignSelf: 'flex-end',

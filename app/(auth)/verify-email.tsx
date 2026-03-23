@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
+import { View, Text, TouchableOpacity, TextInput, StyleSheet } from 'react-native'
 import { useState, useCallback } from 'react'
 import { router, useLocalSearchParams } from 'expo-router'
 import { FontAwesome5 } from '@expo/vector-icons'
@@ -7,13 +7,14 @@ import { useToast } from '@/hooks/use-toast'
 import Toast from '@/components/toast'
 
 export default function VerifyEmailScreen() {
-  const { email } = useLocalSearchParams<{ email: string }>()
+  const { email: paramEmail } = useLocalSearchParams<{ email?: string }>()
+  const [email, setEmail] = useState(paramEmail || '')
   const [isResending, setIsResending] = useState(false)
   const { toast, showSuccess, showError, hideToast } = useToast()
 
   const handleResendEmail = useCallback(async () => {
     if (!email) {
-      showError('Email address not found')
+      showError('Please enter your email address')
       return
     }
 
@@ -52,8 +53,26 @@ export default function VerifyEmailScreen() {
 
         <Text style={styles.title}>VERIFY YOUR EMAIL</Text>
         <Text style={styles.subtitle}>
-          We've sent a verification link to your email address. Please check your inbox and click the link to verify your account.
+          {paramEmail 
+            ? "We've sent a verification link to your email address. Please check your inbox and click the link to verify your account."
+            : "Enter your email address to resend the verification link."}
         </Text>
+
+        {!paramEmail && (
+          <View style={styles.inputWrapper}>
+            <FontAwesome5 name="envelope" size={18} color="#0991f8" style={styles.inputIcon} solid />
+            <TextInput
+              style={styles.input}
+              placeholder="ENTER YOUR EMAIL"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              editable={!isResending}
+              placeholderTextColor="#999"
+            />
+          </View>
+        )}
 
         <TouchableOpacity
           style={[styles.button, isResending && styles.buttonDisabled]}
@@ -128,6 +147,26 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 32,
     lineHeight: 24,
+  },
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#0991f8',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    backgroundColor: '#fff',
+    height: 56,
+    marginBottom: 20,
+  },
+  inputIcon: {
+    marginRight: 12,
+  },
+  input: {
+    flex: 1,
+    fontSize: 16,
+    fontFamily: 'Jua-Regular',
+    color: '#000',
   },
   button: {
     backgroundColor: '#0991f8',
