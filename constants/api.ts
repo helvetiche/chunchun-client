@@ -3,8 +3,8 @@ const isDev = process.env.NODE_ENV === 'development' || __DEV__
 
 export const API_CONFIG = {
   BASE_URL: isDev
-    ? 'http://localhost:8787' // Local Cloudflare Workers dev server
-    : 'https://chunchun-server.helvetiche.workers.dev', // Production
+    ? 'http://localhost:3000/api' // Local Next.js dev server
+    : 'https://chunchun-api.vercel.app/api', // Production
   ENDPOINTS: {
     // Public endpoints
     HEALTH: '/health',
@@ -13,10 +13,12 @@ export const API_CONFIG = {
     AUTH_REGISTER: '/auth/register',
     AUTH_LOGIN: '/auth/login',
     AUTH_LOGOUT: '/auth/logout',
+    AUTH_OAUTH: '/auth/oauth',
     AUTH_ME: '/auth/me',
-    AUTH_SESSIONS: '/auth/sessions',
-    AUTH_LOGOUT_ALL: '/auth/logout-all',
-    AUTH_CHANGE_PASSWORD: '/auth/change-password',
+    AUTH_VERIFY_EMAIL: '/auth/verify-email',
+    AUTH_RESEND_VERIFICATION: '/auth/resend-verification',
+    AUTH_FORGOT_PASSWORD: '/auth/forgot-password',
+    AUTH_RESET_PASSWORD: '/auth/reset-password',
     
     // User endpoints
     USERS: '/users',

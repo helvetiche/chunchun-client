@@ -10,6 +10,13 @@ class ApiClient {
     this.timeout = API_CONFIG.TIMEOUT
   }
 
+  private getSecurityHeaders(): Record<string, string> {
+    return {
+      'X-Requested-With': 'XMLHttpRequest',
+      'X-Content-Type-Options': 'nosniff',
+    }
+  }
+
   private async request<T>(
     endpoint: string,
     options: RequestInit = {}
@@ -26,6 +33,7 @@ class ApiClient {
         ...options,
         headers: {
           ...DEFAULT_HEADERS,
+          ...this.getSecurityHeaders(),
           ...options.headers,
         },
         signal: controller.signal,
@@ -35,6 +43,9 @@ class ApiClient {
       
       console.log('Response status:', response.status)
       console.log('Response ok:', response.ok)
+
+      // Validate security headers in response
+      this.validateResponseHeaders(response)
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
@@ -47,6 +58,8 @@ class ApiClient {
       }
 
       const data: ApiResponse<T> = await response.json()
+      
+      console.log('API Response data:', JSON.stringify(data, null, 2))
       
       if (!data.success) {
         const error: ApiError = new Error(data.error || ERROR_MESSAGES.UNKNOWN_ERROR)
@@ -74,6 +87,18 @@ class ApiClient {
 
       const unknownError: ApiError = new Error(ERROR_MESSAGES.UNKNOWN_ERROR)
       return { success: false, error: unknownError }
+    }
+  }
+
+  private validateResponseHeaders(response: Response): void {
+    const contentType = response.headers.get('content-type')
+    if (contentType && !contentType.includes('application/json')) {
+      console.warn('Unexpected content-type:', contentType)
+    }
+
+    const xContentTypeOptions = response.headers.get('x-content-type-options')
+    if (xContentTypeOptions !== 'nosniff') {
+      console.warn('Missing or invalid X-Content-Type-Options header')
     }
   }
 

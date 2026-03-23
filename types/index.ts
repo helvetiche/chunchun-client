@@ -19,12 +19,14 @@ export interface PaginatedResponse<T> extends ApiResponse<T[]> {
 // User Types
 export interface User {
   id: number
+  uid?: string
   name: string
   email: string
   avatar_url: string | null
   provider: 'email' | 'google' | 'apple'
   created_at: string
   last_login: string | null
+  emailVerified?: boolean
 }
 
 export interface CreateUserData {
@@ -54,6 +56,8 @@ export interface RegisterCredentials {
   name: string
   email: string
   password: string
+  acceptedTerms?: boolean
+  acceptedMarketing?: boolean
 }
 
 // API Error Types

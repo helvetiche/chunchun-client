@@ -1,3 +1,4 @@
+import * as SecureStore from 'expo-secure-store'
 import { apiClient } from './api-client'
 import { API_CONFIG } from '@/constants/api'
 import type { 
@@ -8,19 +9,32 @@ import type {
   ApiError 
 } from '@/types'
 
-interface AuthResponse {
-  user: User
-  session?: {
-    id: string
-    expiresAt: string
+interface AuthResponseData {
+  uid: string
+  token?: string
+  email?: string
+  name?: string
+  emailVerified?: boolean
+  message?: string
+  verificationLink?: string
+  resetLink?: string
+  user?: {
+    uid: string
+    email: string
+    name: string
+    createdAt: string
+    updatedAt: string
+    emailVerified?: boolean
   }
 }
 
 class AuthService {
+  private tokenKey = 'chunchun_auth_token'
+
   async signUp(credentials: RegisterCredentials): Promise<Result<User, ApiError>> {
-    console.log('AuthService signUp called with:', { email: credentials.email, name: credentials.name })
+    console.log('AuthService signUp called')
     
-    const result = await apiClient.post<AuthResponse>(
+    const result = await apiClient.post<AuthResponseData>(
       API_CONFIG.ENDPOINTS.AUTH_REGISTER,
       credentials
     )
@@ -30,14 +44,28 @@ class AuthService {
       return result
     }
 
-    console.log('SignUp successful:', result.data)
-    return { success: true, data: result.data.user }
+    const responseData = result.data
+
+    const user: User = {
+      id: 0,
+      uid: responseData.uid,
+      name: responseData.name || credentials.name,
+      email: responseData.email || credentials.email,
+      avatar_url: null,
+      provider: 'email',
+      created_at: new Date().toISOString(),
+      last_login: new Date().toISOString(),
+      emailVerified: responseData.emailVerified || false,
+    }
+
+    console.log('SignUp successful:', user)
+    return { success: true, data: user }
   }
 
   async signIn(credentials: LoginCredentials): Promise<Result<User, ApiError>> {
-    console.log('AuthService signIn called with:', { email: credentials.email })
+    console.log('AuthService signIn called')
     
-    const result = await apiClient.post<AuthResponse>(
+    const result = await apiClient.post<AuthResponseData>(
       API_CONFIG.ENDPOINTS.AUTH_LOGIN,
       credentials
     )
@@ -47,86 +75,200 @@ class AuthService {
       return result
     }
 
-    console.log('SignIn successful:', result.data)
-    return { success: true, data: result.data.user }
+    const responseData = result.data
+    
+    // Store token securely
+    if (responseData.token) {
+      await this.setToken(responseData.token)
+    }
+
+    const userData: User = {
+      id: 0,
+      uid: responseData.uid,
+      name: responseData.user?.name || responseData.name || '',
+      email: responseData.user?.email || responseData.email || credentials.email,
+      avatar_url: null,
+      provider: 'email',
+      created_at: responseData.user?.createdAt || new Date().toISOString(),
+      last_login: new Date().toISOString(),
+    }
+
+    console.log('SignIn successful:', userData)
+    return { success: true, data: userData }
   }
 
   async signOut(): Promise<Result<void, ApiError>> {
     console.log('AuthService signOut called')
     
-    const result = await apiClient.post<void>(
-      API_CONFIG.ENDPOINTS.AUTH_LOGOUT
-    )
-
-    if (!result.success) {
-      console.error('SignOut API error:', result.error)
-      return result
+    // Call server logout endpoint
+    try {
+      const token = await this.getToken()
+      if (token) {
+        await apiClient.post(
+          API_CONFIG.ENDPOINTS.AUTH_LOGOUT,
+          {},
+          token
+        )
+      }
+    } catch (error) {
+      console.error('Server logout error:', error)
     }
-
-    console.log('SignOut successful')
+    
+    // Clear local token
+    await this.clearToken()
     return { success: true, data: undefined }
   }
 
-  async getCurrentUser(): Promise<Result<User, ApiError>> {
-    console.log('AuthService getCurrentUser called')
-    
-    const result = await apiClient.get<{ user: User }>(
-      API_CONFIG.ENDPOINTS.AUTH_ME
-    )
-
-    if (!result.success) {
-      console.error('GetCurrentUser API error:', result.error)
-      return result
+  async setToken(token: string): Promise<void> {
+    try {
+      await SecureStore.setItemAsync(this.tokenKey, token)
+      console.log('Token stored securely')
+    } catch (error) {
+      console.error('Error storing token:', error)
     }
-
-    console.log('GetCurrentUser successful:', result.data)
-    return { success: true, data: result.data.user }
-  }
-
-  async refreshToken(): Promise<Result<string, ApiError>> {
-    // Session-based auth doesn't need token refresh
-    // The session is automatically validated on each request
-    console.log('RefreshToken called - using session-based auth, no refresh needed')
-    return { success: true, data: 'session-based' }
   }
 
   async getToken(): Promise<string | null> {
-    // Session-based auth doesn't use tokens
-    // The session cookie is automatically sent with requests
+    try {
+      return await SecureStore.getItemAsync(this.tokenKey)
+    } catch (error) {
+      console.error('Error retrieving token:', error)
+    }
     return null
   }
 
-  async logoutAllDevices(): Promise<Result<void, ApiError>> {
-    console.log('AuthService logoutAllDevices called')
-    
-    const result = await apiClient.post<void>(
-      API_CONFIG.ENDPOINTS.AUTH_LOGOUT_ALL
-    )
-
-    if (!result.success) {
-      console.error('LogoutAllDevices API error:', result.error)
-      return result
+  async clearToken(): Promise<void> {
+    try {
+      await SecureStore.deleteItemAsync(this.tokenKey)
+      console.log('Token cleared securely')
+    } catch (error) {
+      console.error('Error clearing token:', error)
     }
-
-    console.log('LogoutAllDevices successful')
-    return { success: true, data: undefined }
   }
 
-  async changePassword(currentPassword: string, newPassword: string): Promise<Result<void, ApiError>> {
-    console.log('AuthService changePassword called')
-    
-    const result = await apiClient.post<void>(
-      API_CONFIG.ENDPOINTS.AUTH_CHANGE_PASSWORD,
-      { currentPassword, newPassword }
-    )
+  async getCurrentUser(): Promise<Result<User, ApiError>> {
+    try {
+      const token = await this.getToken()
+      if (!token) {
+        const error = new Error('No token found') as ApiError
+        error.status = 401
+        return {
+          success: false,
+          error
+        }
+      }
 
-    if (!result.success) {
-      console.error('ChangePassword API error:', result.error)
-      return result
+      const result = await apiClient.get<AuthResponseData>(
+        API_CONFIG.ENDPOINTS.AUTH_LOGIN,
+        token
+      )
+
+      if (!result.success) {
+        return result
+      }
+
+      const responseData = result.data
+      const user: User = {
+        id: 0,
+        uid: responseData.uid,
+        name: responseData.user?.name || responseData.name || '',
+        email: responseData.user?.email || responseData.email || '',
+        avatar_url: null,
+        provider: 'email',
+        created_at: responseData.user?.createdAt || new Date().toISOString(),
+        last_login: new Date().toISOString(),
+      }
+
+      return { success: true, data: user }
+    } catch (error) {
+      console.error('Error getting current user:', error)
+      const apiError = new Error('Failed to get current user') as ApiError
+      apiError.status = 500
+      return {
+        success: false,
+        error: apiError
+      }
     }
+  }
 
-    console.log('ChangePassword successful')
-    return { success: true, data: undefined }
+  async verifyEmail(oobCode: string): Promise<Result<void, ApiError>> {
+    try {
+      const result = await apiClient.post(
+        API_CONFIG.ENDPOINTS.AUTH_VERIFY_EMAIL,
+        { oobCode }
+      )
+
+      if (!result.success) {
+        return result
+      }
+
+      return { success: true, data: undefined }
+    } catch (error) {
+      console.error('Error verifying email:', error)
+      const apiError = new Error('Failed to verify email') as ApiError
+      apiError.status = 500
+      return { success: false, error: apiError }
+    }
+  }
+
+  async resendVerification(email: string): Promise<Result<void, ApiError>> {
+    try {
+      const result = await apiClient.post(
+        API_CONFIG.ENDPOINTS.AUTH_RESEND_VERIFICATION,
+        { email }
+      )
+
+      if (!result.success) {
+        return result
+      }
+
+      return { success: true, data: undefined }
+    } catch (error) {
+      console.error('Error resending verification:', error)
+      const apiError = new Error('Failed to resend verification email') as ApiError
+      apiError.status = 500
+      return { success: false, error: apiError }
+    }
+  }
+
+  async forgotPassword(email: string): Promise<Result<void, ApiError>> {
+    try {
+      const result = await apiClient.post(
+        API_CONFIG.ENDPOINTS.AUTH_FORGOT_PASSWORD,
+        { email }
+      )
+
+      if (!result.success) {
+        return result
+      }
+
+      return { success: true, data: undefined }
+    } catch (error) {
+      console.error('Error requesting password reset:', error)
+      const apiError = new Error('Failed to request password reset') as ApiError
+      apiError.status = 500
+      return { success: false, error: apiError }
+    }
+  }
+
+  async resetPassword(oobCode: string, newPassword: string): Promise<Result<void, ApiError>> {
+    try {
+      const result = await apiClient.post(
+        API_CONFIG.ENDPOINTS.AUTH_RESET_PASSWORD,
+        { oobCode, newPassword }
+      )
+
+      if (!result.success) {
+        return result
+      }
+
+      return { success: true, data: undefined }
+    } catch (error) {
+      console.error('Error resetting password:', error)
+      const apiError = new Error('Failed to reset password') as ApiError
+      apiError.status = 500
+      return { success: false, error: apiError }
+    }
   }
 }
 

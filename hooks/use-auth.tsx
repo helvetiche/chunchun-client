@@ -20,9 +20,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   })
 
   useEffect(() => {
-    // TODO: Implement auth state persistence and restoration
-    // For now, just set loading to false
-    setAuthState(prev => ({ ...prev, isLoading: false }))
+    // Restore auth state from stored token
+    const restoreAuthState = async () => {
+      try {
+        const result = await authService.getCurrentUser()
+        
+        if (result.success) {
+          setAuthState({
+            user: result.data,
+            isLoading: false,
+            isAuthenticated: true,
+            error: null,
+          })
+        } else {
+          // Token invalid or expired, clear it
+          await authService.clearToken()
+          setAuthState({
+            user: null,
+            isLoading: false,
+            isAuthenticated: false,
+            error: null,
+          })
+        }
+      } catch (error) {
+        console.error('Failed to restore auth state:', error)
+        setAuthState({
+          user: null,
+          isLoading: false,
+          isAuthenticated: false,
+          error: null,
+        })
+      }
+    }
+
+    restoreAuthState()
   }, [])
 
   const signIn = async (email: string, password: string) => {
