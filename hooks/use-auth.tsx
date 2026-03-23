@@ -34,7 +34,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           })
         } else {
           // Token invalid or expired, clear it
-          await authService.clearToken()
+          await authService.clearTokens()
           setAuthState({
             user: null,
             isLoading: false,
@@ -54,6 +54,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     restoreAuthState()
+
+    // Set up token refresh interval (check every 5 minutes)
+    const refreshInterval = setInterval(async () => {
+      try {
+        const token = await authService.getValidToken()
+        if (!token) {
+          // Session expired, log out
+          setAuthState({
+            user: null,
+            isLoading: false,
+            isAuthenticated: false,
+            error: null,
+          })
+        }
+      } catch (error) {
+        console.error('Token refresh check failed:', error)
+      }
+    }, 5 * 60 * 1000) // 5 minutes
+
+    return () => clearInterval(refreshInterval)
   }, [])
 
   const signIn = async (email: string, password: string) => {

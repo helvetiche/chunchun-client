@@ -25,6 +25,8 @@ export default function RootLayout() {
           'Poppins-SemiBold': require('@/providers/Poppins/Poppins-SemiBold.ttf'),
           'Poppins-Bold': require('@/providers/Poppins/Poppins-Bold.ttf'),
           'Jua-Regular': require('@/providers/Jua/Jua-Regular.ttf'),
+          'JetBrainsMono-Regular': require('@/providers/JetBrains_Mono/static/JetBrainsMono-Regular.ttf'),
+          'JetBrainsMono-Medium': require('@/providers/JetBrains_Mono/static/JetBrainsMono-Medium.ttf'),
         })
         setFontsLoaded(true)
       } catch (error) {

@@ -40,6 +40,7 @@ export default function LoadingScreen({ onComplete }: { onComplete?: () => void 
         })
       }, 500)
     })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const progressWidth = progressAnim.interpolate({

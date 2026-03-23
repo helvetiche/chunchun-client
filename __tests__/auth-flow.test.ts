@@ -74,7 +74,7 @@ describe('Authentication Flow', () => {
       const password = 'ValidPass123'
       const confirmPassword = 'DifferentPass123'
 
-      expect(password === confirmPassword).toBe(false)
+      expect(password).not.toBe(confirmPassword)
     })
 
     it('should call signUp with correct credentials', async () => {

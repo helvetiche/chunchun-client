@@ -27,6 +27,12 @@ export interface User {
   created_at: string
   last_login: string | null
   emailVerified?: boolean
+  isDoneSetup?: boolean
+  fullName?: string
+  birthday?: string
+  address?: string
+  gender?: 'male' | 'female' | 'other' | 'prefer-not-to-say'
+  school?: string
 }
 
 export interface CreateUserData {
@@ -37,6 +43,15 @@ export interface CreateUserData {
 export interface UpdateUserData {
   name?: string
   email?: string
+}
+
+export interface ProfileSetupData {
+  fullName: string
+  birthday: string
+  address: string
+  gender: 'male' | 'female' | 'other' | 'prefer-not-to-say'
+  school?: string
+  avatarUrl?: string
 }
 
 // Authentication Types

@@ -1,5 +1,5 @@
-import { useEffect, useRef } from 'react'
-import { View, Text, StyleSheet, Animated, Dimensions } from 'react-native'
+import { useEffect, useRef, useState } from 'react'
+import { Text, StyleSheet, Animated, Dimensions, TouchableOpacity } from 'react-native'
 import { FontAwesome5 } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 
@@ -23,9 +23,11 @@ export default function Toast({
   const translateY = useRef(new Animated.Value(-100)).current
   const opacity = useRef(new Animated.Value(0)).current
   const overlayOpacity = useRef(new Animated.Value(0)).current
+  const [isAnimating, setIsAnimating] = useState(false)
 
   useEffect(() => {
     if (visible) {
+      setIsAnimating(true)
       // Slide in and fade in
       Animated.parallel([
         Animated.spring(translateY, {
@@ -53,6 +55,7 @@ export default function Toast({
 
       return () => clearTimeout(timer)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible])
 
   const hideToast = () => {
@@ -73,11 +76,12 @@ export default function Toast({
         useNativeDriver: true,
       }),
     ]).start(() => {
+      setIsAnimating(false)
       onHide?.()
     })
   }
 
-  if (!visible && translateY._value === -100) {
+  if (!visible && !isAnimating) {
     return null
   }
 
@@ -143,6 +147,13 @@ export default function Toast({
       >
         <FontAwesome5 name={getIcon()} size={20} color="#fff" solid />
         <Text style={styles.message}>{message}</Text>
+        <TouchableOpacity 
+          onPress={hideToast}
+          style={styles.closeButton}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          <FontAwesome5 name="times" size={18} color="#fff" solid />
+        </TouchableOpacity>
       </Animated.View>
     </>
   )
@@ -197,5 +208,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: 'Jua-Regular',
     textTransform: 'uppercase',
+  },
+  closeButton: {
+    padding: 4,
+    marginLeft: 8,
   },
 })

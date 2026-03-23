@@ -191,7 +191,7 @@ export default function LoginScreen() {
 
           <View style={styles.footer}>
             <View style={styles.dividerLine} />
-            <Text style={styles.footerText}>DON'T HAVE AN ACCOUNT YET?</Text>
+            <Text style={styles.footerText}>DON&apos;T HAVE AN ACCOUNT YET?</Text>
             <View style={styles.dividerLine} />
           </View>
 

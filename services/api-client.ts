@@ -19,7 +19,8 @@ class ApiClient {
 
   private async request<T>(
     endpoint: string,
-    options: RequestInit = {}
+    options: RequestInit = {},
+    retryCount = 0
   ): Promise<Result<T, ApiError>> {
     try {
       const url = `${this.baseUrl}${endpoint}`
@@ -46,6 +47,30 @@ class ApiClient {
 
       // Validate security headers in response
       this.validateResponseHeaders(response)
+
+      // Handle 401 with token refresh (only retry once)
+      if (response.status === 401 && retryCount === 0 && !endpoint.includes('/auth/')) {
+        console.log('Received 401, attempting token refresh...')
+        
+        // Dynamic import to avoid circular dependency
+        const { authService } = await import('./auth-service')
+        const refreshResult = await authService.refreshToken()
+        
+        if (refreshResult.success) {
+          console.log('Token refreshed, retrying request...')
+          // Retry request with new token
+          const newToken = refreshResult.data
+          const newHeaders: Record<string, string> = { ...options.headers as Record<string, string> }
+          if (newToken) {
+            newHeaders.Authorization = `Bearer ${newToken}`
+          }
+          
+          return this.request<T>(endpoint, { ...options, headers: newHeaders }, retryCount + 1)
+        } else {
+          console.log('Token refresh failed, clearing session...')
+          await authService.clearTokens()
+        }
+      }
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))

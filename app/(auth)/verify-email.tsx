@@ -54,7 +54,7 @@ export default function VerifyEmailScreen() {
         <Text style={styles.title}>VERIFY YOUR EMAIL</Text>
         <Text style={styles.subtitle}>
           {paramEmail 
-            ? "We've sent a verification link to your email address. Please check your inbox and click the link to verify your account."
+            ? "We&apos;ve sent a verification link to your email address. Please check your inbox and click the link to verify your account."
             : "Enter your email address to resend the verification link."}
         </Text>
 
@@ -100,7 +100,7 @@ export default function VerifyEmailScreen() {
         <View style={styles.infoBox}>
           <FontAwesome5 name="info-circle" size={16} color="#0991f8" solid />
           <Text style={styles.infoText}>
-            Didn't receive the email? Check your spam folder or click the resend button above.
+            Didn&apos;t receive the email? Check your spam folder or click the resend button above.
           </Text>
         </View>
       </View>
@@ -141,12 +141,13 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   subtitle: {
-    fontSize: 16,
-    fontFamily: 'Jua-Regular',
+    fontSize: 14,
+    fontFamily: 'JetBrainsMono-Regular',
     color: '#0991f8',
     textAlign: 'center',
     marginBottom: 32,
-    lineHeight: 24,
+    lineHeight: 22,
+    letterSpacing: 0.3,
   },
   inputWrapper: {
     flexDirection: 'row',
@@ -223,9 +224,10 @@ const styles = StyleSheet.create({
   },
   infoText: {
     flex: 1,
-    fontSize: 12,
-    fontFamily: 'Jua-Regular',
+    fontSize: 11,
+    fontFamily: 'JetBrainsMono-Regular',
     color: '#0991f8',
-    lineHeight: 18,
+    lineHeight: 16,
+    letterSpacing: 0.2,
   },
 })

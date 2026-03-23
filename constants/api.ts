@@ -13,8 +13,9 @@ export const API_CONFIG = {
     AUTH_REGISTER: '/auth/register',
     AUTH_LOGIN: '/auth/login',
     AUTH_LOGOUT: '/auth/logout',
-    AUTH_OAUTH: '/auth/oauth',
+    AUTH_REFRESH: '/auth/refresh',
     AUTH_ME: '/auth/me',
+    AUTH_OAUTH: '/auth/oauth',
     AUTH_VERIFY_EMAIL: '/auth/verify-email',
     AUTH_RESEND_VERIFICATION: '/auth/resend-verification',
     AUTH_FORGOT_PASSWORD: '/auth/forgot-password',
@@ -23,6 +24,7 @@ export const API_CONFIG = {
     // User endpoints
     USERS: '/users',
     USER_BY_ID: (id: number) => `/users/${id}`,
+    USER_PROFILE_SETUP: '/users/profile-setup',
   },
   TIMEOUT: 10000, // 10 seconds
 } as const
@@ -36,10 +38,12 @@ export const DEFAULT_HEADERS = {
 export const ERROR_MESSAGES = {
   NETWORK_ERROR: 'Network error. Please check your connection.',
   TIMEOUT_ERROR: 'Request timeout. Please try again.',
-  UNAUTHORIZED: 'Authentication required. Please log in.',
+  UNAUTHORIZED: 'Session expired. Please log in again.',
   FORBIDDEN: 'Access denied. Insufficient permissions.',
   NOT_FOUND: 'Resource not found.',
   SERVER_ERROR: 'Server error. Please try again later.',
   VALIDATION_ERROR: 'Invalid input. Please check your data.',
   UNKNOWN_ERROR: 'An unexpected error occurred.',
+  TOKEN_EXPIRED: 'Your session has expired. Please log in again.',
+  TOKEN_REFRESH_FAILED: 'Failed to refresh session. Please log in again.',
 } as const
